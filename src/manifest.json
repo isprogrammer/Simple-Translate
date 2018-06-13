@@ -1,36 +1,40 @@
 {
-  "version": "0.4.3",
+  "version": "0.5.4",
   "manifest_version": 2,
-  "name": "Google™ Translator",
   "short_name": "igtranslator",
-  "description": "Google™ Translator is a handy multi-language translator built on top of Google Translate.",
+  "web_accessible_resources": ["data/*"],
+  "name": "Google™ Translator (web-extension)",
+  "background": {"page": "lib/chrome/background.html"},
+  "options_ui": {"chrome_style": true, "page": "data/options/options.html"},
+  "description": "a handy multi-language translator built on top of Google translate.",
   "permissions": [
     "tabs",
     "storage",
     "<all_urls>",
+    "webRequest",
     "contextMenus",
-    "notifications"
+    "notifications",
+    "webRequestBlocking"
   ],
   "browser_action": {
     "default_icon": "data/icon16.png",
-    "default_popup": "data/popup/popup.html",
-    "default_title": "Google™ Translator"
+    "default_title": "Google™ Translator",
+    "default_popup": "data/popup/popup.html"
   },
-  "background": {
-    "page": "lib/chrome/background.html"
-  },
-  "web_accessible_resources": ["data/*"],
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "css": ["data/content_script/inject.css"],
-    "js": [
-      "data/content_script/chrome/chrome.js",
-      "data/content_script/inject.js"
-    ],
-    "run_at": "document_start",
-    "all_frames": false
-  }],
-  "options_page": "data/options/options.html",
+  "content_scripts": [
+    {
+      "css": ["data/content_script/inject.css"],
+      "js": ["data/content_script/inject.js"],
+      "run_at": "document_start",
+      "matches": ["<all_urls>"],
+      "all_frames": false
+    }, {
+      "matches": ["http://translate.google.com/*", "https://translate.google.com/*"],
+      "js": ["data/content_script/translate.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
   "icons": {
     "16": "data/icon16.png",
     "32": "data/icon32.png",

@@ -28,6 +28,7 @@
   cursor: nw-resize !important;
   position: absolute !important;
   z-index: 2000000000 !important;
+  border-radius: 10px !important;
   vertical-align: middle !important;
   background: transparent !important;
 }
@@ -41,17 +42,17 @@
 }
 .igtranslator-bubble {
   margin: 0;
-  width: auto;
+  width: 100%;
   height: auto;
   color: black;
-  display: block;
-  font: 13px Arial;
   min-width: 260px;
-  border-radius: 2px;
+  border-radius: 0px;
   z-index: 2000000000;
-  border-spacing: 2px;
-  padding: 2px 2px 0 2px;
+  table-layout: fixed;
+  border-spacing: 1px;
+  padding: 2px 1px 0px 1px;
   border-collapse: separate;
+  font: 13px arial, sans-serif;
 }
 .igtranslator-bubble tr {
   width: 100%;
@@ -78,9 +79,9 @@
   margin: 0;
   border: 0;
   padding: 0;
+  width: 100%;
   height: 20px;
-  width: 100px;
-  font-size: 130%;
+  font-size: 120%;
   min-width: 100px;
   text-align: center;
   background-repeat: no-repeat;
@@ -89,16 +90,17 @@
 }
 .igtranslator-header td {
   border: 0;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 .igtranslator-header pre {
   border: 0;
   margin: 0;
   padding: 0;
   width: auto;
-  font-family: arial;
+  display: inline-block;
   white-space: pre-line;
+  font-family: arial,sans-serif;
 }
 .igtranslator-content {
   margin: 0;
@@ -108,13 +110,13 @@
   display: none;
   border-left: 0;
   border-right: 0;
-  font: 13px Arial;
   min-height: 80px;
   overflow-y: auto;
   min-width: 260px;
   border-bottom: 0;
   border-spacing: 2px;
   border-collapse: separate;
+  font: 13px arial,sans-serif;
   background-repeat: no-repeat;
   background-position: center center;
 }
@@ -131,13 +133,17 @@
 .igtranslator-footer td {
   margin: 0;
   padding: 0;
+  width: 20%;
   height: 20px;
   opacity: 0.5;
   min-width: 32px;
   cursor: pointer;
-  border-radius: 1px;
+  border-radius: 0;
+  transition: 0.3s ease all;
   background-size: 16px 16px;
   background-repeat: no-repeat;
+  -moz-transition: 0.3s ease all;
+  -webkit-transition: 0.3s ease all;
   background-position: center center;
 }
 .igtranslator-footer td:hover {

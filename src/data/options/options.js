@@ -1,43 +1,62 @@
+var background = (function () {
+  var _tmp = {};
+  chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    for (var id in _tmp) {
+      if (_tmp[id] && (typeof _tmp[id] === "function")) {
+        if (request.path === 'background-to-options') {
+          if (request.method === id) _tmp[id](request.data);
+        }
+      }
+    }
+  });
+  /*  */
+  return {
+    "receive": function (id, callback) {_tmp[id] = callback},
+    "send": function (id, data) {chrome.runtime.sendMessage({"path": 'options-to-background', "method": id, "data": data})}
+  }
+})();
+
 var connect = function (elem, pref) {
   var att = "value";
   if (elem) {
-    if (elem.type == "checkbox")    att = "checked";
-    if (elem.localName == "select") att = "value";
-    if (elem.localName == "span")   att = "textContent";
+    if (elem.type === "checkbox") att = "checked";
+    if (elem.localName === "select") att = "value";
+    if (elem.localName === "span") att = "textContent";
     var pref = elem.getAttribute("data-pref");
     background.send("get", pref);
-    elem.addEventListener("change", function () {
-      background.send("changed", {
-        pref: pref,
-        value: this[att]
-      });
-    });
+    elem.addEventListener("change", function () {background.send("changed", {"pref": pref, "value": this[att]})});
   }
+  /*  */
   return {
-    get value () {      
-      return elem[att];
-    },
+    get value () {return elem[att]},
     set value (val) {
+      if (val === "true") val = true;
       if (elem.type === "file") return;
-      if (val == "true") val = true;
-      else if (val == "false") val = false;
+      else if (val === "false") val = false;
       elem[att] = val;
     }
   }
-}
+};
 
 background.receive("set", function (o) {
-  if (window[o.pref]) {
-    window[o.pref].value = o.value;
+  if (window[o.pref]) window[o.pref].value = o.value; 
+  if (o.pref === "options.SorH") {
+    var tabHistory = document.getElementById("tab-history");
+    var tabSettings = document.getElementById("tab-settings");
+    if (o.value === "history") {
+      tabHistory.style.display = "block";
+      tabSettings.style.display = "none";
+    } else {
+      tabHistory.style.display = "none";
+      tabSettings.style.display = "block";
+    }
   }
 });
 
 function clearOptionsHistoryTable() {
   var table = document.getElementById('translator-history-list');
   var trs = table.getElementsByTagName('tr');
-  for (var i = trs.length - 1; i > 0; i--) {
-    table.removeChild(trs[i]); /* clear table */
-  }
+  for (var i = trs.length - 1; i > 0; i--) table.removeChild(trs[i]);
 }
 
 function clearOptionsHistory() {
@@ -46,30 +65,27 @@ function clearOptionsHistory() {
 }
 
 function init() {
-  /* get DOM elements */
-  var selection = document.querySelector("input[data-pref='settings.selection']");
-  var dbClick = document.querySelector("input[data-pref='settings.dbClick']");
-  var mouseOver = document.querySelector("input[data-pref='settings.mouseOverTranslation']");
-  var showIcon = document.querySelector("input[data-pref='settings.showIcon']");
   var enable = document.querySelector("input[data-pref='history.enable']");
   var number = document.querySelector("input[data-pref='history.number']");
+  var dbClick = document.querySelector("input[data-pref='settings.dbClick']");
+  var showIcon = document.querySelector("input[data-pref='settings.showIcon']");
+  var selection = document.querySelector("input[data-pref='settings.selection']");
+  var mouseOver = document.querySelector("input[data-pref='settings.mouseOverTranslation']");
   var translateIconShow = document.querySelector("input[data-pref='settings.translateIconShow']");
   var translateIconTime = document.querySelector("input[data-pref='settings.translateIconTime']");
-  /* prefs */
+  /*  */
   var prefs = document.querySelectorAll("*[data-pref]");
   [].forEach.call(prefs, function (elem) {
     var pref = elem.getAttribute("data-pref");
     window[pref] = connect(elem, pref);
   });
+  /*  */
   function set(elm, pref, value) {
     if (!elm) return;
     elm.checked = value;
-    background.send("changed", {
-      pref: pref,
-      value: value
-    });
+    background.send("changed", {"pref": pref, "value": value});
   }
-  /* add event listener */
+  /*  */
   selection.addEventListener('change', function (e) {
     var flag = e.target.checked;
     set(selection, 'settings.selection', flag);
@@ -78,6 +94,7 @@ function init() {
     translateIconShow.disabled = true;
     translateIconTime.disabled = true;
   }, false);
+  /*  */
   dbClick.addEventListener('change', function (e) {
     var flag = e.target.checked;
     set(dbClick, 'settings.dbClick', flag);
@@ -86,17 +103,7 @@ function init() {
     translateIconShow.disabled = true;
     translateIconTime.disabled = true;
   }, false);
-  /*
-  mouseOver.addEventListener('change', function (e) {
-    var flag = e.target.checked;
-    set(mouseOver, 'settings.mouseOverTranslation', flag);
-    set(selection, 'settings.selection', false);
-    set(dbClick, 'settings.dbClick', false);
-    set(showIcon, 'settings.showIcon', false);
-    translateIconShow.disabled = true;
-    translateIconTime.disabled = true;
-  }, false);
-  */
+  /*  */
   showIcon.addEventListener('change', function (e) {
     var flag = e.target.checked;
     translateIconShow.disabled = !flag;
@@ -106,32 +113,30 @@ function init() {
     set(dbClick, 'settings.dbClick', false);
     set(mouseOver, 'settings.mouseOverTranslation', false);
   }, false);
+  /*  */
   document.getElementById('clearHistory').addEventListener('click', clearOptionsHistory, false);
   enable.addEventListener('click', function (e) {
     var flag = e.target.checked;
-    if (!flag) {  
+    if (!flag) {
       clearOptionsHistory();
       number.disabled = true;
-    }
-    else {
-      number.disabled = false;
-    }
+    } else number.disabled = false;
   }, false);
-  /* fetch history */
+  /*  */
   var dicHistoryData = [];
-  function updateOptionsPage(data) {
+  var updateOptionsPage = function (data) {
     dicHistoryData = data;
     var n = window["history.number"].value;
     var e = window["history.enable"].value;
     var table = document.getElementById('translator-history-list');
-    function addLine(table, i, word, definition, id) {
-      function addColumn(tr, txt, rule, title) {
+    var addLine = function (table, i, word, definition, id) {
+      var addColumn = function (tr, txt, rule, title) {
         var td = document.createElement("td"); 
-        td.textContent = txt; 
-        td.setAttribute('dir', 'auto'); 
-        td.setAttribute('rule', rule); 
+        td.textContent = txt;
+        td.setAttribute('rule', rule);
+        td.setAttribute('dir', 'auto');
         td.setAttribute('title', title);
-        if (rule == 'delete') {
+        if (rule === 'delete') {
           td.addEventListener('click', function (e) {
             var index = parseInt(e.target.parentNode.getAttribute('index'));
             dicHistoryData.splice(index, 1);
@@ -140,41 +145,38 @@ function init() {
           });
         }
         tr.appendChild(td); 
-      }
+      };
+      /*  */
       var tr = document.createElement("tr");
       addColumn(tr, i + 1, 'index', '');
       addColumn(tr, word, 'word', '');
       addColumn(tr, definition, 'definition', '');
-      addColumn(tr, '', 'delete', 'Delete Line');
+      addColumn(tr, '✕', 'delete', 'Delete Line');
       if (id) tr.style.fontWeight = 'bold';
       tr.setAttribute('index', i);
       table.appendChild(tr);
-    }
-    if (e || e == 'true') {
+    };
+    /*  */
+    if (e || e === 'true') {
       number.disabled = false;
       clearOptionsHistoryTable();
-      dicHistoryData.forEach(function (o, i) {
-        if (i < n) addLine(table, i, o[0], o[1], o[2]);
-      });
-    }
-    else {
+      dicHistoryData.forEach(function (o, i) {if (i < n) addLine(table, i, o[0], o[1], o[2])});
+    } else {
       clearOptionsHistory();
       number.disabled = true;
     }
     if (!showIcon.checked) {
       translateIconShow.disabled = true;
       translateIconTime.disabled = true;
-    }
-    else {
+    } else {
       translateIconShow.disabled = false;
       translateIconTime.disabled = false;
     }
-  }
+  };
+  /*  */
   background.send("get-history-update");
   background.receive("history-update", updateOptionsPage);
-
-  /* save to history */
-  document.getElementById('saveAsHistory').addEventListener('click', function() {
+  document.getElementById('saveAsHistory').addEventListener('click', function () {
     var csv = '';
     dicHistoryData.forEach(function (o, i) {
       if (i < window["history.number"].value) {
@@ -194,5 +196,5 @@ function init() {
   /*  */
   window.removeEventListener("load", init, false);
 };
-/*  */
+
 window.addEventListener("load", init, false);
