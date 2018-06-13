@@ -113,9 +113,48 @@ var init = function () {
     translateIcon.style.left = (rect && rect.left ? (rect.left + window.scrollX + rect.width - 2) : (e.clientX + window.scrollX + 10)) + 'px';
   };
   /*  */
+  var colorLevel0 = '', colorLevel1 = '', colorLevel2 = '';
   var blank_src = navigator.userAgent.indexOf("Firefox") === -1 ? "about:blank" : chrome.runtime.getURL("/data/content_script/blank.html");
   var mainDIV = html("div", {"class": "igtranslator-main-div"}, document.body);
   var iFrame = html("iframe", {"src": blank_src, "class": "igtranslator-iframe", "scrolling": "no", "frameborder": 0}, mainDIV);
+  /*  */
+  var colorBubble = function () {
+    var shadeRGBColor = function (color, percent) {
+      var f = color.split(","), t = percent < 0 ? 0 : 255, p = percent < 0 ? percent * -1 : percent, R = parseInt(f[0].slice(4)), G = parseInt(f[1]), B = parseInt(f[2]);
+      return "rgb(" + (Math.round((t - R) * p) + R) + "," + (Math.round((t - G) * p) + G) + ","+(Math.round((t - B) * p) + B) + ")";
+    };
+    /* 0 <dark --- light> 100 */
+    colorLevel0 = shadeRGBColor(bubbleRGB, 0.00);
+    colorLevel1 = shadeRGBColor(bubbleRGB, 0.30);
+    colorLevel2 = shadeRGBColor(bubbleRGB, 0.60);
+    /*  */
+    var id = "igtranslator-color";
+    var doc = iFrame.contentDocument;
+    if (doc) {
+      var style = doc.getElementById(id);
+      if (style) style.parentNode.removeChild(style);
+      var style = doc.createElement("style");
+      style.setAttribute("type", "text/css");
+      style.setAttribute("id", id);
+      var head = doc.documentElement || doc.querySelector("head") || doc.head;
+      if (head) head.appendChild(style);
+      style.sheet.insertRule(".igtranslator-bubble {background-color: " + colorLevel2 + "; border: solid 1px " + colorLevel0 + ";}", 0);
+      style.sheet.insertRule(".igtranslator-bubble:before {border-bottom-color: " + colorLevel0 + " !important;}", 1);
+      style.sheet.insertRule(".igtranslator-bubble:after {border-bottom-color: " + colorLevel2 + " !important;}", 2);
+      style.sheet.insertRule(".igtranslator-content {border-top: solid 1px " + colorLevel0 + ";}", 3);
+      style.sheet.insertRule(".igtranslator-footer td {background-color: " + colorLevel1 + "; border: solid 1px " + colorLevel0 + ";}", 4);
+      style.sheet.insertRule(".igtranslator-footer td:hover {background-color: " + colorLevel0 + ";}", 5);
+    }
+    /*  */
+    var style = document.getElementById(id);
+    if (style) style.parentNode.removeChild(style);
+    var style = document.createElement("style");
+    style.setAttribute("type", "text/css");
+    style.setAttribute("id", id);
+    var head = document.documentElement || document.querySelector("head") || document.head;
+    if (head) head.appendChild(style);
+    style.sheet.insertRule(".igtranslator-activator-icon {background-color: " + colorLevel0 + " !important;}", 0);
+  };
   /*  */
   window.setTimeout(function () {
     if (iFrame.contentDocument) {
@@ -140,15 +179,18 @@ var init = function () {
         else background.send("remove-from-phrasebook", {"question": word, "answer": definition});
         bookmarks.style.backgroundImage = "url(" + manifest.url + "data/icons/bookmarks-loading.gif)";
       }, false);
+      /*  */
       toggle.addEventListener("click", function () {
         background.send("toggle-request");
         toggle.style.backgroundImage = "url(" + manifest.url + "data/icons/bookmarks-loading.gif)";
       }, false);
+      /*  */
       voice.addEventListener("click", function () {
-        var isVoice = voice.getAttribute("isVoice") == "true";
+        var isVoice = voice.getAttribute("isVoice") === "true";
         if (!isVoice) return;
         background.send("play-voice", {"word": word});
       }, false);
+      /*  */
       home.addEventListener("click", function (e) {background.send("open-page", {"page": 'define', "word": word})});
       settings.addEventListener("click", function () {background.send("open-page", {"page": 'settings'})}, false);
       faq.addEventListener("click", function () {background.send("open-page", {"page": 'faq'})}, false);
@@ -163,47 +205,9 @@ var init = function () {
         }
       });
     }
-  }, 500);
-  /*  */
-  var colorLevel0 = '', colorLevel1 = '', colorLevel2 = '';
-  function colorBubble() {
-    function shadeRGBColor(color, percent) {
-      var f = color.split(","), t = percent < 0 ? 0 : 255, p = percent < 0 ? percent * -1 : percent, R = parseInt(f[0].slice(4)), G = parseInt(f[1]), B = parseInt(f[2]);
-      return "rgb(" + (Math.round((t - R) * p) + R) + "," + (Math.round((t - G) * p) + G) + ","+(Math.round((t - B) * p) + B) + ")";
-    }
-    /* 0 <dark --- light> 100 */
-    colorLevel0 = shadeRGBColor(bubbleRGB, 0.00);
-    colorLevel1 = shadeRGBColor(bubbleRGB, 0.30);
-    colorLevel2 = shadeRGBColor(bubbleRGB, 0.60);
     /*  */
-    var doc = iFrame.contentDocument;
-    if (doc) {
-      var id = "igtranslator-color";
-      var style = doc.getElementById(id);
-      if (style) style.parentNode.removeChild(style);
-      var style = doc.createElement("style");
-      style.setAttribute("type", "text/css");
-      style.setAttribute("id", id);
-      var head = doc.querySelector("head") || doc.head || doc.documentElement;
-      if (head) head.appendChild(style);
-      style.sheet.insertRule(".igtranslator-bubble {background-color: " + colorLevel2 + "; border: solid 1px " + colorLevel0 + ";}", 0);
-      style.sheet.insertRule(".igtranslator-bubble:before {border-bottom-color: " + colorLevel0 + " !important;}", 1);
-      style.sheet.insertRule(".igtranslator-bubble:after {border-bottom-color: " + colorLevel2 + " !important;}", 2);
-      style.sheet.insertRule(".igtranslator-content {border-top: solid 1px " + colorLevel0 + ";}", 3);
-      style.sheet.insertRule(".igtranslator-footer td {background-color: " + colorLevel1 + "; border: solid 1px " + colorLevel0 + ";}", 4);
-      style.sheet.insertRule(".igtranslator-footer td:hover {background-color: " + colorLevel0 + ";}", 5);
-    }
-    /*  */
-    var style = document.getElementById(id);
-    if (style) style.parentNode.removeChild(style);
-    var style = document.createElement("style");
-    style.setAttribute("type", "text/css");
-    style.setAttribute("id", id);
-    var head = document.querySelector("head") || document.head || document.documentElement;
-    if (head) head.appendChild(style);
-    style.sheet.insertRule(".igtranslator-activator-icon {background-color: " + colorLevel0 + " !important;}", 0);
-  }
-  colorBubble();
+    colorBubble();
+  }, 700);
   /*  */
   var translateIcon = html("div", {
     "class": "igtranslator-activator-icon bounceIn",
