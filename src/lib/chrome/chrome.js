@@ -30,7 +30,9 @@ app.storage = (function () {
   window.setTimeout(function () {
     chrome.storage.local.get(null, function (o) {
       objs = o;
-      document.getElementById("common").src = "../common.js";
+      var script = document.createElement("script");
+      script.src = "../common.js";
+      document.body.appendChild(script);
     });
   }, 300);
   /*  */

@@ -113,8 +113,9 @@ var init = function () {
     translateIcon.style.left = (rect && rect.left ? (rect.left + window.scrollX + rect.width - 2) : (e.clientX + window.scrollX + 10)) + 'px';
   };
   /*  */
+  var blank_src = navigator.userAgent.indexOf("Firefox") === -1 ? "about:blank" : chrome.runtime.getURL("/data/content_script/blank.html");
   var mainDIV = html("div", {"class": "igtranslator-main-div"}, document.body);
-  var iFrame = html("iframe", {"src": "about:blank", "class": "igtranslator-iframe", "scrolling": "no", "frameborder": 0}, mainDIV);
+  var iFrame = html("iframe", {"src": blank_src, "class": "igtranslator-iframe", "scrolling": "no", "frameborder": 0}, mainDIV);
   /*  */
   window.setTimeout(function () {
     if (iFrame.contentDocument) {
@@ -147,7 +148,7 @@ var init = function () {
         var isVoice = voice.getAttribute("isVoice") == "true";
         if (!isVoice) return;
         background.send("play-voice", {"word": word});
-      }, false); 
+      }, false);
       home.addEventListener("click", function (e) {background.send("open-page", {"page": 'define', "word": word})});
       settings.addEventListener("click", function () {background.send("open-page", {"page": 'settings'})}, false);
       faq.addEventListener("click", function () {background.send("open-page", {"page": 'faq'})}, false);
@@ -524,7 +525,7 @@ var init = function () {
   /*  */
   background.send("options-request", null);
   background.receive("options-response", function (data) {
-    bubbleRGB = data.bubbleRGB; 
+    bubbleRGB = data.bubbleRGB;
     colorBubble();
     /*  */
     isDblclick = data.isDblclick;
@@ -619,9 +620,9 @@ function getTextBoundingRect(input, selectionStart, selectionEnd, debug) {
     var isBoxModel = box.offsetWidth == 2;
     body.removeChild(box);
     box = input.getBoundingClientRect();
-    var clientTop = docElem.clientTop || body.clientTop || 0, 
+    var clientTop = docElem.clientTop || body.clientTop || 0,
         clientLeft = docElem.clientLeft || body.clientLeft || 0,
-        scrollTop = win.pageYOffset || isBoxModel && docElem.scrollTop  || body.scrollTop, 
+        scrollTop = win.pageYOffset || isBoxModel && docElem.scrollTop  || body.scrollTop,
         scrollLeft = win.pageXOffset || isBoxModel && docElem.scrollLeft || body.scrollLeft;
     return {"top": box.top  + scrollTop  - clientTop, "left": box.left + scrollLeft - clientLeft};
   }

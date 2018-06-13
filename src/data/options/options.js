@@ -30,8 +30,8 @@ var connect = function (elem, pref) {
   return {
     get value () {return elem[att]},
     set value (val) {
-      if (val === "true") val = true;
       if (elem.type === "file") return;
+      if (val === "true") val = true;
       else if (val === "false") val = false;
       elem[att] = val;
     }
@@ -39,7 +39,7 @@ var connect = function (elem, pref) {
 };
 
 background.receive("set", function (o) {
-  if (window[o.pref]) window[o.pref].value = o.value; 
+  if (window[o.pref]) window[o.pref].value = o.value;
   if (o.pref === "options.SorH") {
     var tabHistory = document.getElementById("tab-history");
     var tabSettings = document.getElementById("tab-settings");
@@ -131,7 +131,7 @@ function init() {
     var table = document.getElementById('translator-history-list');
     var addLine = function (table, i, word, definition, id) {
       var addColumn = function (tr, txt, rule, title) {
-        var td = document.createElement("td"); 
+        var td = document.createElement("td");
         td.textContent = txt;
         td.setAttribute('rule', rule);
         td.setAttribute('dir', 'auto');
@@ -144,7 +144,7 @@ function init() {
             background.send("set-history-update", dicHistoryData);
           });
         }
-        tr.appendChild(td); 
+        tr.appendChild(td);
       };
       /*  */
       var tr = document.createElement("tr");
